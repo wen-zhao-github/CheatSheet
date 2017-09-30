@@ -1,0 +1,910 @@
+connect eclipse and tomcat
+
+1. eclipse ee 32bit
+2. tomacat: service installer with user: admin
+3. eclipse server add tomcat (c:\apache foundation...)
+
+eclipse file new dynamicWebProject
+
+run .jsp right click on the file, choose Run as, run on server. 
+//for expression
+convert string to upper case <%= new String("Hello World!").toUpperCase()%>
+Captain log : now the time is <br />
+<%= new java.util.Date() %>
+//for scriptlet
+<%
+for (int i = 0; i < 5;  i++){
+	out.println("i love jsp "+i);
+}
+%>
+
+//for method declaration
+<%! String makeItLower(String data){
+	return data.toLowerCase();
+}
+%>
+<br/><br/> //method call
+HELLO to lower case <%=makeItLower("HELLO") %>
+
+<%@ page import ="com.lovetocode.jsp.FunUtils, java.util.ArrayList"  %>
+
+jsp built in server objects
+
+<jsp:include page="my-header.html"></jsp:include>
+<jsp:include page="my-footer.jsp"></jsp:include>
+
+<form action="student-register.jsp">
+First name : <input type = "text" name = "firstname"><br/><br/>
+Last name : <input type = "text" name = "lastname"><br/><br/>
+<input type = "submit" value = "Submit">
+</form>
+
+Student registration is confirmed: <br/> <br/>
+<%= request.getParameter("firstname") %>  <%= request.getParameter("lastname") %>
+
+${param.firstname} ${param.lastname }
+
+Nationality: 
+<select name = "nationality" >
+<option>France</option>
+<option>German</option>
+<option>Rather not say</option> 
+</select>
+<%= request.getParameter("nationality") %>
+
+Languages you are willing to choose: <br/>
+		<input type = "checkbox" name = "language" value = "C#">C#
+		<input type = "checkbox" name = "language" value = "JAVA">JAVA
+		<input type = "checkbox" name = "language" value = "C++">C++
+		<input type = "checkbox" name = "language" value = "Python">Python<br/>
+
+	<!-- display list create html dynamic -->
+	<ul>		
+		<%
+		    String [] languages = request.getParameterValues("language");
+		    if (languages != null){
+		    	for (String language: languages){
+		    	out.println("<li>"+language+"</li>");
+		    }	
+		    }
+
+	    %>
+	</ul>
+
+	tracking unique user sessio id
+	1. sesion id is unique, provided by tomcat server
+	2. server memory not local pc ,not database
+	3. session.setAtrribute(String attributename, value) //could be array 
+	4. Object session.getAttribute(attributename)
+
+	setMaxInactiveIneterval(milisec) //normaly is  30mins
+	<body>
+	<br />
+	<br />
+	<br />
+	<!-- create FORM -->
+	<form action="mylist.jsp">
+		Add new Item: <input type="text" name="items"> <input
+			type="submit" value="Submit">
+	</form>
+	<!-- submit items  -->
+	<%  //get session attribute the list
+    	List<String> itemsEntered = (List<String>)session.getAttribute("itemsEnteredByFar");
+    	//if does not exist, create it
+    	if (itemsEntered == null){
+    		itemsEntered = new ArrayList<String>();
+    		session.setAttribute("itemsEnteredByFar", itemsEntered);
+    	}
+    	//add data to the list
+    	String itemToAdd = request.getParameter("items");
+    	if( itemToAdd!= null){
+    		itemsEntered.add(itemToAdd);
+    	}
+    %>
+	<br />
+	<br />
+	<br />
+	<hr>
+	<br />
+	<br />
+	<br /> Item entered:
+	<!-- display items -->
+	<ol>
+		<%
+            for (String tempItem:itemsEntered ){
+            	out.println("<li>"+tempItem+"</li>");
+            }
+        %>
+	</ol>
+
+</body>
+
+By default, JSPs have session tracking enabled and a new HttpSession object is instantiated for each new client automatically. Disabling session tracking requires explicitly turning it off by setting the page directive session attribute to false as follows:
+<em><%@ page session="false" %>
+</em>
+
+
+Cookies
+1. session is short, like 30 mins
+2. Cookies help to personalize the website for a user, by keep tracking the users preference long term cookie.setMaxAge(60*60*24*365);
+3. cookies are basicly text data (name, value) pairs exchanged between web browser and server
+4. web browser only send the cookie to server of which the domain match
+5. javax.servlet.http.Cookie cookie.getName(); cookie.getValue(); new Cookie(string name, String value);
+
+Homepage.jsp:
+                  show content based on a default language
+                  get cookie to update the lang Cookie [] cookies = request.getCookies();
+                  if client click on change lang setting, go to that page 
+Change lang page.html:
+                  show the form for client to fill
+
+Change lang page.jsp: 
+                  create cookie based on the what lang the cient has chosen response.addCookie(cookie);
+                  confirm the setting change
+                  if the client click on the return to home page
+
+    // encode cookie data ... handle case of languages with spaces in them
+    favLang = URLEncoder.encode(favLang, "UTF-8");             
+    // decode cookie data ... handle case of languages with spaces in them
+    favLang = URLDecoder.decode(tempCookie.getValue(), "UTF-8");
+JSP Custome Tag benefit
+1. minimize the amount of scriptlet code in jsp
+2. avoid dumping too much java code in jsp
+3. separte presentation and business logic
+4. Tag is reusable
+
+JSP Standard tag library: JSTL
+//loop the cookies on this domain
+<c:forEach items="${cookie}" var="currentCookie">  
+    Cookie name as map entry key: ${currentCookie.key} <br/>
+    Cookie object as map entry value: ${currentCookie.value} <br/>
+    Name property of Cookie object: ${currentCookie.value.name} <br/>
+    Value property of Cookie object: ${currentCookie.value.value} <br/>
+</c:forEach>
+
+<%
+List<Student> students = new ArrayList<Student> ();
+students.add(new Student("Wen","Zhao",true));
+students.add(new Student("Xue","Gong",false));
+students.add(new Student("Ping","Cao",true));
+pageContext.setAttribute("studentsList",students);
+    
+%>
+//dislay a table deprived from a ArrayList of object
+<table>
+<col width = "120">
+<col width = "120">
+<col width = "120">
+<tr>
+<th>First Name</th>
+<th>Last Name</th>
+<th>VIP</th>
+</tr>
+//studentsList request attribute defined by setAttribute
+<c:forEach var = "temp" items = "${studentsList}">
+<tr>
+<td>${temp.firstName}</td>
+<td>${temp.getLastName()}</td>
+<td>${temp.isGoldStudent()}</td>
+</tr>
+</c:forEach>
+</table>
+
+
+<c:if test = "${temp.isGoldStudent()}">
+Special discount available!
+</c:if>
+
+<c:if test = "${not temp.isGoldStudent()}">
+Get VIP to benefit further
+</c:if>
+
+<c:choose>
+<c:when test = "${temp.isGoldStudent()}"> Special discount available!</c:when>
+<c:otherwise> Get VIP to benefit further </c:otherwise>
+</c:choose>
+
+
+<%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
+ <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c"%>
+ <c:set var = "actor" value = "Chandler"></c:set>
+Length of ${actor}:${fn:length(actor)}<br/>
+Upper case him: ${fn:toUpperCase(actor)}
+Does his name start with Ch ?: ${fn:startsWith(actor,"Ch") }
+
+<c:set var = "cities" value = "Paris,Shenzhen,Athens,Shanghai"/>
+<c:set var = "citiesArray" value = "${fn:split(cities,',')}"/>
+<c:forEach var = "city" items = "${citiesArray }" >
+${city}<br/>
+</c:forEach>
+<c:set var = "citiesJoined" value = "${fn:join(citiesArray,'-')}"/>
+${citiesJoined }
+
+JSP - Internationalization| i18n
+localization| l10n
+
+Locale = language + region
+en_US
+en_UK
+mylabels.properties
+label.greeting = Howdy
+label.firstName = First Name
+lable.lastName = Last Name
+lable.message = Welcome to this class!
+mylabels_en_US.properties
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/fmt" prefix = "fmt" %>
+
+      <fmt:setLocale value = "en"/>
+      <fmt:setBundle basename = "com.tutorialspoint.Example" var = "lang"/>
+
+      <fmt:message key = "count.one" bundle = "${lang}"/><br/>
+      <fmt:message key = "count.two" bundle = "${lang}"/><br/>
+      <fmt:message key = "count.three" bundle = "${lang}"/><br/>
+ //set variable the local
+<c:set var = "theLocal"
+value = "${not empty param.theLocal ? param.theLocal : pageContext.request.locale}"
+scope = "session"/>
+//set locale 
+<fmt:setLocale value = "${theLocal}"/>
+//set bundle
+<fmt:setBundle basename = "com.example.wen.i18n.resources.mylabels"/>
+<a href="i18n-test.jsp?theLocal=en_US">English (US)</a>  &nbsp; | &nbsp;
+<a href="i18n-test.jsp?theLocal=fr_FR">French (FR)</a> &nbsp; | &nbsp;
+<a href="i18n-test.jsp?theLocal=zh_CN">Chinese (CN)</a><br/>
+<hr>
+//refer to message acorrding to the defined labels
+<fmt:message key = "label.greeting"/><br/>
+<fmt:message key = "label.firstName"/>: John<br/>
+<fmt:message key = "label.lastName"/>: Doe<br/>
+<fmt:message key = "label.welcome"/>
+<hr>
+The selected Locale:${theLocal} 
+
+Servlets:
+java class that is processed on the server
+java class genertate HTML that is returned to browser
+can read HTIML form data use cookies and sessions
+
+Model View Controller MVC design pattern
+Servlet handle busines logic
+jsp presentation view
+
+HTTP 404 not found(Servlet not found) [duplicate]
+
+1. I had suffered this problem too. Whenever we delete a tomcat server and run our project in new one without build classpaths and clean and build that project, we got this type of exceptions.
+So, Build your projects classpath. Goto property of your Project then Select =>Java Build Path => Order and Export. Select All classpaths.
+
+2. Cleaning all projects works too
+
+get  vs post
+get:arameters remain in browser history because they are part of the URL	
+post: Parameters are not saved in browser history.
+
+get: can send but the parameter data is limited to what we can stuff into the request line (URL). Safest to use less than 2K of parameters, some servers handle up to 64K
+post:Can send parameters, including uploading files, to the server.
+
+<init-param> vs <context-param> 
+
+<init-param> and <context-param> are the static parameters which are stored in web.xml file. If you have any data which doesn't change frequently you can store it in one of them.
+
+If you want to store particular data which is only confined to a particular servlet scope, then you can use <init-param> .Anything you declare inside <init-param> is only accessible only for that particular servlet.The init-param is declared inside the <servlet> tag.
+
+<servlet>
+     <display-name>HelloWorldServlet</display-name>
+     <servlet-name>HelloWorldServlet</servlet-name>
+     <init-param>
+         <param-name>Greetings</param-name>
+         <param-value>Hello</param-value>
+     </init-param>
+</servlet>
+and you can access those parameters in the servlet as follows:
+
+out.println(getInitParameter("Greetings"));
+If you want to store data which is common for whole application and if it doesn't change frequently you can use <context-param> instead of servletContext.setAttribute() method of the application context. For more information regarding usage of <context-param> VS ServletContext.setAttribute() have a look at this question. context-param are declared under the tag web-app. You can declare and access the <context-param> as follows
+
+<web-app>
+    <context-param>
+        <param-name>Country</param-name>
+        <param-value>India</param-value>
+    </context-param>
+    <context-param>
+        <param-name>Age</param-name>
+        <param-value>24</param-value>
+    </context-param>
+</web-app>
+Usage in the application either in a JSP or Servlet
+
+getServletContext().getInitParameter("Country");
+getServletContext().getInitParameter("Age");
+
+if want to use servlet level context param, IMPORTANT: Your servlet can not use Annotations for @WebServlet. It has to be manually configured in web.xml with <servlet> and <servlet-mapping> tags
+
+		response.setContentType("text/html");
+		PrintWriter out = response.getWriter();
+		ServletContext context = getServletContext();
+		String maxSize = context.getInitParameter("shopping-cart-max-items");
+		String teamName = context.getInitParameter("team-name");
+		out.println("<html><body>");
+		out.println("<br/><br/>");
+		out.println("Max items in shopping cart: " + maxSize);
+		out.println("<br/><br/>");
+		out.println("Powered by :"+teamName);
+		out.println("</body></html>");
+
+WEB-INF lib add jstl jars.
+
+MVC DEMO
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//add data
+		String [] students = {"Mary","John","Wendy","Miles"};
+		request.setAttribute("student_list", students);
+		//get request dispatcher
+		RequestDispatcher RequetsDispatcherObj =request.getRequestDispatcher("/student-info-jsp.jsp");
+		//forward request to jsp
+		RequetsDispatcherObj.forward(request, response); 
+	}
+
+JSP:<c:forEach var = "temp" items = "${student_list}">
+Student: <c:out value=" ${temp}"/>
+</c:forEach>
+
+community server installer mysql
+win 32bit
+password: admin
+
+tomcat user: admin
+password: admin 
+
+Tomcat database connection pool
+1. mysql 
+2. jdbc driver for given database->WEB-INF->lib
+3. define connection pool: context.html META-INF/context.html
+4. get connection by resource annotation in javacode
+
+DataSource connecting pool
+
+Data access object DAO
+
+Web browser ->Servlet(controller) - >Data access helper class(model) -> database
+Servlet(controller) -> jsp(View)->web browser
+
+servlet calls db model via datasource
+
+public  ArrayList<Student> getStudentList(){
+		ArrayList<Student> students = new ArrayList<Student> ();
+		
+		Connection conn = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        String query = "SELECT * FROM web_student_tracker.student";
+        
+        try{
+        	conn = dataSource.getConnection();
+        	statement = conn.createStatement();
+        	resultSet = statement.executeQuery(query);
+        
+        	while(resultSet.next()){
+        		students.add(new Student(resultSet.getString("first_name"),resultSet.getString("last_name"),resultSet.getString("email")));
+        	}
+        	conn.close();
+        	statement.close();
+        	resultSet.close();
+        	
+        }catch(Exception e){
+        	e.printStackTrace();
+        }
+		return students;
+	}
+
+	MVC servlet class we override the init(); we put code which we normally put inside a constructor
+	<body>
+	<div id="wrapper">
+		<div id="header">
+			<h2>King George University</h2>
+		</div>
+	</div>
+
+	<div id="container">
+		<div id=content>
+			<table>
+				<tr>
+					<th>First Name</th>
+					<th>Last Name</th>
+					<th>Email</th>
+					<%
+						for (Student temp : students) {
+					%>
+				
+				<tr>
+					<td><%=temp.getFirstName() %></td>
+					<td><%=temp.getLastName() %></td>
+					<td><%=temp.getEmail() %></td>
+
+				</tr>
+				<%} %>
+
+
+			</table>
+
+		</div>
+	</div>
+</body>
+
+
+replace jsp scriptlets with jstl
+
+// get version info using an jsp file
+Server Version: <%= application.getServerInfo() %><br>
+Servlet Version: <%= application.getMajorVersion() %>.<%= application.getMinorVersion() %>
+JSP Version: <%= JspFactory.getDefaultFactory().getEngineInfo().getSpecificationVersion() %> <br>
+
+
+
+ <input class="add-student-button" type="submit" value="Add Student"
+ onclick = "window.location.href='add-student-form.jsp';return false;"/>
+
+
+<link type = "text/css" rel = "stylesheet" href = "css/style.css"/>
+
+
+		<form action="StudentControllerServlet" method="GET">
+			<input type="hidden" name="command" value="ADD" />
+			<table>
+				<tbody>
+					<tr>
+						<td><label>First Name</label></td>
+						<td><input type="text" name="firstName"></td>
+					</tr>
+					<tr>
+						<td><label>Last Name</label></td>
+						<td><input type="text" name="lastName"></td>
+					</tr>
+					<tr>
+						<td><label>Email</label></td>
+						<td><input type="text" name="email"></td>
+					</tr>
+					<tr>
+						<td><label></label></td>
+						<td><input type="submit" value="Submit" class = "save"></td>
+					</tr>
+				</tbody>
+			</table>
+		</form>
+
+	public void addStudent(Student newStudent) {
+		// TODO Auto-generated method stub
+		//get connection and statement
+		Connection conn = null;
+		PreparedStatement preparedstat = null;
+		//get table column information based  on the student object
+		String firstName = newStudent.getFirstName();
+		String lastName = newStudent.getLastName();
+		String email = newStudent.getEmail();
+		//create sql
+		//INSERT INTO TABLE_NAME (column1, column2, column3,...columnN)  
+		//VALUES (value1, value2, value3,...valueN);
+		String query = "INSERT INTO web_student_tracker.student (first_name,last_name,email) VALUES(?,?,?)";
+		
+		try{
+			conn = dataSource.getConnection();
+			preparedstat = conn.prepareStatement(query);			
+			
+			preparedstat.setString(1,firstName);
+			preparedstat.setString(2, lastName);
+			preparedstat.setString(3, email);			
+			//execute sql
+			preparedstat.execute();
+
+					<c:forEach var="temp" items="${student_info_list}">
+					<tr>
+						<!-- for each student, define the url-->
+						<c:url var="templink" value="StudentControllerServlet">
+							<c:param name="command" value="LOAD" />
+							<c:param name="studentId" value="${temp.id}" />
+						</c:url>
+
+
+boolean execute()
+Executes the SQL statement in this PreparedStatement object, which may be any kind of SQL statement.
+
+ResultSet executeQuery()
+Executes the SQL query in this PreparedStatement object and returns the ResultSet object generated by the query.
+
+int executeUpdate()
+Executes the SQL statement in this PreparedStatement object, which must be an SQL INSERT, UPDATE or DELETE statement; or an SQL statement that returns nothing, such as a DDL statement.
+
+Actually, valueOf uses parseInt internally. The difference is parseInt returns an int primitive while valueOf returns an Integer object.
+
+
+getParameter() returns http request parameters. Those passed from the client to the server. For example http://example.com/servlet?parameter=1. Can only return String
+getAttribute() is for server-side usage only - you fill the request with attributes that you can use within the same request. For example - you set an attribute in a servlet, and read it from a JSP. Can be used for any object, not just string.
+
+
+		Connection conn = null;
+		PreparedStatement stat = null;
+		String query = "UPDATE web_student_tracker.student SET first_name = ?, last_name = ?, email = ? WHERE id = ?";	    
+		try{
+			conn = dataSource.getConnection();
+			stat = conn.prepareStatement(query);
+			stat.setString(1, studentToUpdate.getFirstName());
+			stat.setString(2, studentToUpdate.getLastName());
+			stat.setString(3, studentToUpdate.getEmail());
+			stat.setInt(4, studentToUpdate.getId());	
+			
+			stat.executeUpdate();
+
+deploy war file:
+1. In Eclipse, stop Tomcat
+
+2. Right-click your project and select Export > WAR File
+
+3. In the Destination field, enter: <any-directory>/mycoolapp.war
+
+4. Outside of Eclipse, start Tomcat
+- If you are using MS Windows, then you should find it on the Start menu
+
+5. Make sure Tomcat is up and running by visiting: http://localhost:8080
+
+6. Deploy your new WAR file by copying it to <tomcat-install-directory>\webapps
+
+Give it about 10-15 seconds to make the deployment. You'll know the deployment is over because you'll see a new folder created in webapps ... with your WAR file name.
+
+7. Visit your new app. If your war file was: mycoolapp.war then you can access it with:  http://localhost:8080/mycoolapp/
+
+
+You would use the exact same technique of using bootstrap with any regular HTML file.
+
+1. Load the bootstrap files in the <head> section of your JSP file
+
+2. Apply the bootstrap styles in the JSP file on html tags.
+
+Inversion of control:
+the approche of outsourcing the construction and managemeng of objects
+
+Spring container primary functions
+1.create and manage objects(inversion of control)
+2. inject object's dependencies(Dependency injection)
+
+configuring spring container
+1. xml
+2. java annotation
+3. java source code
+
+Spring developement process
+1. config spring bean(applicationContext.xml)
+2. create a spring container (ApplicationContext)
+3. retrieve spring bean from spring container
+
+ 	<bean id="myCoach"
+ 		class="com.example.wen.springdemo.YogaCoach">	 		
+ 	</bean>
+
+		//load spring configuration file
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+		//retrieve bean from container
+		Coach theCoach = context.getBean("myCoach",Coach.class);		
+		//call method on the bean
+		System.out.println(theCoach.getDailyWorkout());		
+		//close the context
+		context.close();
+Dependency injection:
+1. dependency something as "helper objects"
+2. two most common ones are "constructor injection" and "setter injection"
+
+Constructor injection:
+1. define dependency interface and class
+2. create constructor for injections
+3. config the dependency in spring file <constructor-arg ref = "myFortuneService"/>	
+
+Setter injection:
+1.create setter methods in the class for injection
+2. config the dependency in spring config file
+
+code to interface not to implementation
+		// load spring config file
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+		//retrieve bean from spring container
+		CricketCoach coach = context.getBean("myCricketCoach",CricketCoach.class);
+		//call methods on bean
+		System.out.println(coach.getDailyWorkout());
+		System.out.println(coach.getFortune());
+		//close the context
+		context.close();
+<bean id="myCoach"
+ 		class="com.example.wen.springdemo.TrackCoach">	 
+ 		<!-- set up constructor injection  -->
+ 		<constructor-arg ref = "myFortuneService"/>		
+ 	</bean>
+         <!-- setter injection -->
+        <property name = "mFortuneService" ref = "myFortuneService"/>  
+        <!-- inject literal value-->  
+        <property name = "email" value = "team@gmail.com"/>
+        <property name = "team" value = "Go Google!"/>
+sport.email = sportemail@outlook.com
+sport.team = Android Orea
+
+    <!-- load property file -->
+ <context:property-placeholder location = "classpath:sport.properties"/>
+ <property name = "email" value = "${sport.email}"/>
+ <property name = "team" value = "${sport.team}"/>
+
+ public class RandomFortuneService implements FortuneService {
+	private String [] fortunes = {
+			"Tomorrow is your lucky day!",
+			"Today is the day!",
+			"Tomrrow will be the best!"
+	};
+
+	@Override
+	public String getFortune() {
+		// TODO Auto-generated method stub
+		Random random = new Random();
+		int index = random.nextInt(fortunes.length);
+		return fortunes[index];
+	}
+
+}
+
+by default, bean scope is singleton, which means that spring only create one bean for each type and all the applications out there will share the same bean. good for stateless class, for saving the resources
+
+prototype: a new object is created for each request, good for state classes
+
+Bean lifecycle 
+init -> destroy
+define init and destroy method for the bean (has to be public void): 
+		The methods should be public void
+		The methods should be no-arg, meaning they shouldn't accept any method arguments.
+config these methods in config file
+
+ 	<bean id="myCoach"
+ 		class="com.example.wen.springdemo.TrackCoach"
+ 		init-method = "initTrackCoach"
+ 		destroy-method = "destroyTrackCoach">
+ 		//define init method
+
+	public void initTrackCoach(){
+		System.out.println("Track coach init method");
+	}
+	public void destroyTrackCoach(){
+		System.out.println("destroy track coach method");
+	} 
+
+Java annotation
+1. special labels/markers added to java classes
+2. provide meta-data about the classes
+3. processed at run time or compile time
+
+example: @Override
+
+xml: too verbose when big project has thousands of beans
+annotation: minimize the XML configuration
+
+instead of load all the beans from XML file
+spring will scan java classes for special annotation and automatically register the beans in the spring container
+
+The @Component annotation marks a java class as a bean so the component-scanning mechanism of spring can pick it up and pull it into the application context. To use this annotation, apply it over class as below:
+
+@Component
+public class EmployeeDAOImpl implements EmployeeDAO {
+    ...
+}
+set up spring fo java project
+1. copy spring file to lib file under the project folder
+2. build path->add JARs->select all the jars
+
+
+<!-- add entry to enable component scanning -->
+<context:component-scan base-package="com.example.wen.springdemoannotations"/>
+
+//explicit name the bean ids
+@Component("sillyTennisCoach")
+public class TennisCoach implements Coach {
+
+		//load spring config 
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+		//retrieve beans
+		Coach tennisCoach = context.getBean("sillyTennisCoach", Coach.class);
+default bean id, class name with the first letter lower case. 
+
+
+Autowiring injection type (xml, java annotations)
+constructor injection
+setter injection
+field injection
+
+constructor injection
+1. define dependency interface and class (need @Component to register this class too for spring to look up the implementation of the interface)
+2. create a constructor for injections
+3. config the dependency injection with @AutoWiring annotation (@Autowired added above the constructor)
+
+	@Autowired
+	public TennisCoach(FortuneService fortuneService){
+		this.fortuneService = fortuneService;
+	}
+
+setter injections with annotation and autowiring
+
+1. create setter method in the class for injection
+2. config the dependency injection with @AutoWiring annotation (@Autowired added above the setter)
+
+method injections (setter injection is one special type of method injection)
+1. define method requiring dependency injectin
+2. @Autowired
+
+
+Field injection
+1. applied directly to the class fields even the private ones
+2. no need setter methods
+
+@Component
+public class JoggingCoach implements Coach {
+	@Autowired
+	private FortuneService fortuneService;
+
+code to interface not to implementation
+choose a style and stay consistent //construction, method and field injections get the same result
+
+Dependency Injection – Field vs Constructor vs Method
+
+when there exisit multiple implementation of a certain interface, error : nouniquebeandefinitionexception
+@Autowired
+@Qualifier("happyFortuneService") //bean id not class name
+private FortuneService fortuneService;
+Qualifier can be used to all kinds of injections
+
+beans vs classes
+JavaBeans are classes that encapsulate many objects into a single object (the bean). They are serializable, have a zero-argument constructor, and allow access to properties using getter and setter methods.
+
+A class is nothing but a blueprint or a template for creating different objects which defines its properties and behaviors. Java class objects exhibit the properties and behaviors defined by its class. A class can contain fields and methods to describe the behavior of an object.
+
+when using qualifier, have to add qualier annotation for all Coach classes which meet the name injection needs
+ inject properties file using Java annotations
+
+
+
+Answer:
+
+This solution will show you how inject values from a properties file using annotatons. The values will no longer be hard coded in the Java code.
+
+1. Create a properties file to hold your properties. It will be a name value pair.  
+
+New text file:  src/sport.properties
+
+foo.email=myeasycoach@luv2code.com
+foo.team=Silly Java Coders
+Note the location of the properties file is very important. It must be stored in src/sport.properties
+
+2. Load the properties file in the XML config file.
+
+File: applicationContext.xml
+
+Add the following lines:
+
+    <context:property-placeholder location="classpath:sport.properties"/>  
+
+This should appear just after the <context:component-scan .../> line
+
+3. Inject the properties values into your Swim Coach: SwimCoach.java
+
+   
+
+@Value("${foo.email}")
+private String email;
+    
+@Value("${foo.team}")
+private String team;
+---
+
+DOWNLOAD FULL SOURCE CODE
+
+You can download entire code from here:
+
+- http://www.luv2code.com/downloads/spring-hibernate/spring-props-annotation-demo.zip
+
+@Component
+@Scope("prototype")
+public class TennisCoach implements Coach {
+
+init-method 
+@PostConstruct
+
+destroy-method
+@PreDestroy
+
+
+	
+	//define my init method
+	@PostConstruct
+	public void doMyStuffForInit(){
+		System.out.println("doMyStuffForInit");
+	}
+	//define my destroy method
+	@PreDestroy
+	public void doMyCleanUpStuff(){
+		System.out.println("doMyCleanUpStuff");
+	}
+For "prototype" scoped beans, Spring does not call the @PreDestroy method.  Gasp!  
+In contrast to the other scopes, Spring does not manage the complete lifecycle of a
+prototype bean: the container instantiates, configures, and otherwise assembles a
+prototype object, and hands it to the client, with no further record of that prototype
+instance. 
+
+Thus, although initialization lifecycle callback methods are called on all objects regardless of scope, in the case of prototypes, configured destruction lifecycle callbacks are not called. The client code must clean up prototype-scoped objects and release expensive resources that the prototype bean(s) are holding. 
+
+
+	public FileFortuneService() {
+
+		File theFile = new File(fileName);
+		
+		System.out.println("Reading fortunes from file: " + theFile);
+		System.out.println("File exists: " + theFile.exists());
+		
+		// initialize array list
+		theFortunes = new ArrayList<String>();
+		
+		// read fortunes from file
+		try (BufferedReader br = new BufferedReader(
+				new FileReader(theFile))) {
+
+			String tempLine;
+
+			while ((tempLine = br.readLine()) != null) {
+				theFortunes.add(tempLine);
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+instead of spring configuration using XML, we could also configure the spring container using pure java code, no XML;
+1. create java class and annotate as @Configuration
+2. add @ComponentScan(packagename) //optional
+3. read spring java configuration class  annotationconfigapplicationcontext(SportConfig.class)
+4. retrieve beans
+
+3 ways of configuration
+1. full XML file
+2. java annotion and <context:component-scan base-package = > to make xml smaller
+3. pure java code (JAVA Spring configuration class)
+
+	public static void main(String[] args) {
+		//load spring config 
+		AnnotationConfigApplicationContext context = new 
+
+		(SportsConfig.class);
+		//retrieve beans
+		Coach coach = context.getBean("yogaCoach", Coach.class);
+		//call methdods on the bean
+		System.out.println(coach.getDailyWorkout());
+		//close the container
+		context.close();
+
+	}
+@Configuration
+//@ComponentScan("com.example.wen.springdemoannotations")
+@PropertySource("classpath:sport.properties")
+public class SportsConfig {
+	//define bean for fortune service
+	@Bean
+	public FortuneService tiredFortuneService (){//this method name will be bean id inside the spring container
+		return new TiredFortuneService();
+	}
+	//define bean for swim coach and inject dependency
+	@Bean
+	public SwimCoach swimCoach(){
+		return new SwimCoach(tiredFortuneService ());
+	}
+
+}	@Value("${email}")
+	private String email;
+	@Value("${team}")
+	private String team;
+
+
+
+Spring MVC
+1. framework for building web application in java
+2. based on the model-view-controller design pattern
+3. leverage features of the core spring framework
