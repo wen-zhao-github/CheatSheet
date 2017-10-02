@@ -908,3 +908,463 @@ Spring MVC
 1. framework for building web application in java
 2. based on the model-view-controller design pattern
 3. leverage features of the core spring framework
+
+Front controller is part of Spring framework and has been already built by spring team: dispatcher servlets
+view : jsp +jstl page to render the data to display data to the user; various view templete
+controller: place business logic and handler the request delegated from front controller 
+model: a container for the data, for shipping data between different parts of spring mvc application
+Spring MVC config
+
+
+<!-- Step 1: Configure Spring MVC Dispatcher Servlet -->
+	<servlet>
+		<servlet-name>dispatcher</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/spring-mvc-demo-servlet.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<!-- Step 2: Set up URL mapping for Spring MVC Dispatcher Servlet -->
+	<servlet-mapping>
+		<servlet-name>dispatcher</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	<!-- Step 3: Add support for component scanning -->
+	<context:component-scan base-package="com.luv2code.springdemo" />
+
+	<!-- Step 4: Add support for conversion, formatting and validation support -->
+	<mvc:annotation-driven/>
+
+	<!-- Step 5: Define Spring MVC view resolver -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/view/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	controller class
+	define a class and add the annotation @Controller
+	@Controller inherit from @Component and hence support scanning
+
+create development process
+1. create controller class
+2. define controller method 
+3. add request mapping to controller method
+4. return view name
+5. develope view page
+
+package com.example.wenspringmvc;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+//create controller class
+@Controller
+public class HomeController {
+	
+    //create controller method
+	@RequestMapping("/")
+	public String showPage(){
+		//return view
+		return "main-menu"; //prefix and suffix will be added according to the config
+	}
+}
+
+FAQ: HELP! My Spring MVC Controller is not working. What to do?
+Section 12, Lecture 103
+JUST A HEADS UP ... 
+
+IN THE FOLLOWING VIDEOS YOUR SPRING MVC CONTROLLER CODE MAY NOT WORK
+
+THIS IS AN ECLIPSE CACHING BUG
+
+IF YOUR CONTROLLER DOESN'T WORK THEN TRY THE STEPS BELOW
+
+BE SURE TO COME BACK TO THIS ARTICLE
+
+----
+
+Question:
+
+HELP! My Spring MVC Controller is not working. What to do?
+
+Answer
+
+
+Debug Tip #1: Make Sure your Package Names is consistent
+
+The Spring configuration file used in the videos expects for your controller to be in the package:
+
+package com.luv2code.springdemo.mvc;
+
+Make sure your controller is this package.
+----
+
+Debug Tip #2: Clear Cache
+
+This is normally a caching issue with Eclipse.
+
+Here are some steps to clear the Eclipse cache and Tomcat cache.
+
+1. In the Server's tab in Eclipse, Stop the Tomcat server
+
+2. Right-click the server and select "Clean..."
+
+3. Right-click the server again and select "Clean Tomcat Work Directory..."
+
+---
+
+4. In the Eclipse, select the top-level menu option, Project > Clean ...
+
+5. Be sure your project is selected and click Ok
+
+6. Restart Eclipse
+
+Retest your application. If you continue to have problems try Debug Tip #2
+
+---
+
+Debug Tip #3: Import the Project in  a new workspace
+
+
+
+
+1. Copy your project to a new directory on your computer like, c:\foobar
+
+2. In Eclipse, open a new workspace: Create a new workspace in Eclipse: File > Switch Workspace > Other ... > give any name
+
+3. In Eclipse, import the project 
+
+3a. Use File > Import > General > Existing Projects into Workspace
+
+3b. Browse to directory: c:\foobar
+
+4. In your new workspace, add a reference to the Tomcat server
+
+5. Test your app in the new workspace
+
+---
+
+If you still have problems, then post your code to the classroom discussion forum.
+
+Be sure to include the following files:
+- spring-mvc-demo-servlet.xml
+- your controller .java
+- your view page .jsp
+
+FAQ: HELP! - Can't Start Tomcat - Ports are in Use!
+Section 12, Lecture 104
+Can't Start Tomcat - Ports are in Use
+
+You may have a problem starting Tomcat. You may see this ugly error message about ports in use.
+
+
+
+
+Solution
+
+You can use the troubleshooting tips below.
+
+Troubleshooting Tip #1
+
+1. Exit Eclipse
+
+2. Open a web web browser and visit, http://localhost:8080
+
+3. If you see a "Tomcat" web page then that means Tomcat is running as a Windows service. To stop Tomcat running as a Windows services, open your Windows Control Panel. Find the service "Apache Tomcat" and stop it.
+
+4. If you don't see a "Tomcat" web page, then stop the appropriate process displayed.
+
+--
+
+Troubleshooting Tip #2
+
+Steps to free port which is already used to run tomcat server in Eclipse
+
+For example , suppose 8080 port is used , we need to make free 8080 to run tomcat
+
+Step 1: (open the CMD command)
+
+C:\Users\username>netstat -o -n -a | findstr 0.0:8080
+
+TCP 0.0.0.0:3000 0.0.0.0:0 LISTENING 3116
+
+Now , we can see that LISTENING port is 3116 for 8080 ,
+
+We need to kill 3116 now
+
+Step 2:-
+
+C:\Users\username>taskkill /F /PID 3116
+
+Step 3: Go to Eclipse and start Server , it will run
+
+Adding data to Spring model
+
+Question
+
+How do I use CSS, JavaScript and Images in a Spring MVC Web App?
+
+Answer
+
+Here are the steps on how to access static resources in a Spring MVC. For example, you can use this to access images, css, JavaScript files etc.
+
+Any static resource is processed as a URL Mapping in Spring MVC. You can configure references to static resources in the spring-mvc-demo-servlet.xml.
+
+In my example, I'm going to have the following directory structure:
+
+
+
+
+I chose to put everything in the "resources" directory. But you can use any name for "resources", such as "assets", "foobar" etc. Also, you can give any name that you want for the subdirectories under "resources".
+---
+
+Step 1: Add the following entry to your Spring MVC configuration file: spring-mvc-demo-servlet.xml
+
+You can place this entry anywhere in your Spring MVC config file.
+
+<mvc:resources mapping="/resources/**" location="/resources/"></mvc:resources> 
+
+Step 2: Now in your view pages, you can access the static files using this syntax:
+
+<img src="${pageContext.request.contextPath}/resources/images/spring-logo.png"> 
+
+You need to use the JSP expression ${pageContext.request.contextPath} to access the correct root directory for your web application.
+
+Apply the same technique for reading CSS and JavaScript.
+
+---
+
+Here's a full example that reads CSS, JavaScript and images.
+
+<!DOCTYPE html> <html>
+
+<head>
+
+    <link rel="stylesheet" type="text/css"           
+
+           href="${pageContext.request.contextPath}/resources/css/my-test.css">
+
+    <script src="${pageContext.request.contextPath}/resources/js/simple-test.js"></script>
+
+</head>
+
+<body>
+
+<h2>Spring MVC Demo - Home Page</h2>
+
+<a href="hello">Plain Hello World</a>
+
+<br><br>
+
+<img src="${pageContext.request.contextPath}/resources/images/spring-logo.png" />
+
+<br><br>
+
+<input type="button" onclick="doSomeWork()" value="Click Me"/>
+
+</body>
+
+</html>
+
+---
+
+Source code for this example are available here:
+
+- https://gist.github.com/darbyluv2code/9a09543a226baeedc04b9a5037ca52ec
+
+
+
+ 
+Browse Q&A
+Continue
+
+
+   Show curriculum navigation Go to Dashboard
+Questions
+Search for a question:
+Search for a question
+13 questions in this lecture
+
+Ask a new question
+ Keh Kok YONG
+Cannot find "resources" folder
+Hi Crud,I couldn't find the "resources" folder inside my "dynamic web project".  So, I tried creating inside "WebContent" folder or "WEB-INF" folder, it image won't show.By the way, I am using STS 3.9.0 release.Thank you.
+Tom Kokkeler
+NoHandlerFound
+Hi Chad, I am trying to link a stylesheet into my jsp. I use the following line in my jsp to do so: <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/stylesheets/springDemoStylesheet.css"/>  When checking the debug window in Opera the link seems to be all just fine. The problem is that I get an error in Eclipse telling me this: org.springframework.web.servlet.PageNotFound noHandlerFound WARNING: No mapping found for HTTP request with URI [/SpringMVCDemo/resources/stylesheets/springDemoStylesheet.css] in DispatcherServlet with name 'dispatcher' I have added the MVS resource mapping into my xml file <mvc:resources mapping="/resources/**" location="/resources/" /> My folder structure is the same as described:[image]So what am I missing here? Could you help me out? Thank you very much:)
+Abhishay Srivastava
+Getting Unresolved compilation error. "The method addAttribute(String, String) is undefined for the type Model" code snippet- model.addAttribute("message" , result);
+Getting Unresolved compilation error.  "The method addAttribute(String, String) is undefined for the type Model"    code snippet- model.addAttribute("message" , result);
+Heer Lalchandani
+Background Image
+Hi sir, I am not able to put background image in JSP ,this background  image i want to insert through css. in jsp.Please Guide me
+Остап Мацько
+Another answer
+Hi Chad)First of all i must say you "Thank you very much" for your videos.I watched only 150 your videos about Spring(i off course will countinue watch).Thanks to your video now i'm practising on a position trainee JavaDev On "Epam Systems" Compony.I have practising Spring project on Spring now.And my question how i can call methods on a processForm(JSP)? I mean i created some methods on a class Car.java how must i call this methods in jsp and how i can see the result of this methods?What you can recommend in this situation?
+Blueocean
+static resources shortcut
+Hi Chad, quick question regarding the static resources. Alternatively to the spring:url taglib pointed out by Christian, can we use the model to define a shortcut to each resource subfolders, such as: <img src="${images}/spring-logo.png"> where images= pageContext.request.contextPath + "/resources/images" if:<mvc:resources mapping="/resources/**" location="/resources/"></mvc:resources>
+Joel Garcia
+How to inherit CSS and JS in all the views?
+hello teacher, all woks fine, actually i've learned a lot so far! So before of all "THANKS A LOT", but in this lecture I have a question.... im RoR developer and in rails there is something called "partials", also in Laravel exists something called "yield" i suppose that Spring also has something similar, because it isn't a good practice repeat same code in all the views. I mean something like this  <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/css/style.css"> <script src="${pageContext.request.contextPath}/resources/js/event.js"></script>
+İsa KÜÇÜKOĞUZ
+Are we supposed to know CSS, Javascript and etc. What if we don't ?
+Hi Chad,As i asked in the title, are we supposed to know all this stuff other than spring ? or should we learn just the basics ? or what happens if don't know any css or javascript etc ?  because it seems confusing when i look at them first. what do you recommend ?
+Sheryl
+Why does href in main-menu.jsp have "hello" instead of "ShowForm". it caused a mapping not found error
+Ranjen Naidu
+How to use CSS , Javascript and Images in Spring MVC Web App using Maven
+Hi Chad,I am using Maven. Can you guide me how to use your code you have provided in Section 12 , Lecture 112 in Maven. I have tried and getting the following error:[image]For the full source code you can view from here:https://drive.google.com/open?id=0BzPmevkJwp6yWTRTaElia2lMOXM
+Maksym Kolov
+Difference between mapping and location
+Hi Chad,I cannot make much difference between those two as I tried to use mapping in my jsp page, like this:<img src="${pageContext.request.contextPath}/images/pic.jpg"> and I have the following mvc:resources set up:<mvc:resources mapping="/images/**" location="/img/"></mvc:resources>and it does not work.Documentation is not much of a help either as I have no clue what this means:The URL mapping pattern within the current Servlet context to use for serving resources from this handler, such  as "/resources/**"Any help would be amazing!
+Christian Altamirano Ayala
+Another Way to import resources
+Hi chad, I use in the jsp file the code below, for use CSS, JS, IMG  :) and it works!!.<spring:url value="/resources/bower_components/bootstrap/dist/css/bootstrap.min.css" var="bowerComponent"/>         <spring:url value="/resources/bower_components/metisMenu/dist/metisMenu.min.css" var="metisMenu"/>         <spring:url value="/resources/css/sb-admin-2.css" var="adminsb"/>         <spring:url value="/resources/bower_components/font-awesome/css/font-awesome.min.css" var="font"/>                         <!-- Bootstrap Core CSS -->        <link href="${bowerComponent}" rel="stylesheet">         <!-- MetisMenu CSS -->        <link href="${metisMenu}" rel="stylesheet">         <!-- Custom CSS -->        <link href="${adminsb}" rel="stylesheet">         <!-- Custom Fonts -->        <link href="${font}" rel="stylesheet" type="text/css">previously i have to add <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+Carlos Morzan
+Upload image or file to images folder in Spring MVC
+Hi Chad,Can you let me know how to upload an image or file into the /resources/images/ folder using spring mvc. Thank you.Carlos
+Question Details
+
+
+JUNIT 
+eclipse new project->other->maven
+junit test case can only be public void and no input param
+
+	@Test
+	public void testTruncateAInFirst2Positions_AFirstOne(){
+		assertEquals("CD",helper.truncateAInFirst2Positions("ACD"));
+	}
+	@Test
+	public void testAreFirstAndLastTwoCharactersTheSame(){
+		//assertEquals(false, );	
+		assertFalse(helper.areFirstAndLastTwoCharactersTheSame("ABCD"));
+	}
+		@Test
+	public void testAreFirstAndLastTwoCharactersTheSame_ABAB(){
+		assertTrue(helper.areFirstAndLastTwoCharactersTheSame("ABAB"));
+	}
+
+	//before method will be executed before every test method runs
+	@Before
+	public void setup(){
+		System.out.println("@before: set up");
+	}
+	//after method run after every test finish
+	@After
+	public void afterMethod(){
+		System.out.println("@after: clean up");
+	}
+	//execute once before the tests
+	@BeforeClass
+	public static void beforeClass(){
+		System.out.println("before class");
+	}//execute once after the tests
+	@AfterClass
+	public static void afterClass(){
+		System.out.println("after class");
+	}
+     //compare two objects
+      //compare the same object, same memory address assertEquals();
+	assertArrayEquals(expected,numbers); 
+//test for exceptions
+@Test
+	public void testNull(){
+		int [] number = null;
+		try{
+			Arrays.sort(number);
+		}catch(NullPointerException e){
+			//success case
+		}
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testNull(){
+		int [] number = null;	
+		Arrays.sort(number);
+	}
+//test for performance
+	@Test(timeout = 67)
+	public void arraySort_Performance(){
+		int [] numbers = {5,10,5};
+		for(int i = 0; i < 1000000; i++){
+			numbers[0] = i;
+			Arrays.sort(numbers);
+		}
+	}
+//parameterized junit testing
+@RunWith(Parameterized.class)
+public class ParametizedStringHelperTest {
+   
+	StringHelper helper = new StringHelper();
+	private String input;
+	private String expectedOutput;
+	
+	public ParametizedStringHelperTest(String input, String expectedOutput) {
+		super();
+		this.input = input;
+		this.expectedOutput = expectedOutput;
+	}
+	@Parameters
+	public static Collection<String[]> parameterizedTest(){
+		String expected [][] = {{"AAD","CD"},
+		{"ACD","CD"}};		
+		return Arrays.asList(expected);
+	}
+
+	@Test
+	public void testTruncateAInFirst2Positions_AFirstOne(){
+		assertEquals(expectedOutput,helper.truncateAInFirst2Positions(input));
+	}
+
+}
+Test suite is used to bundle a few unit test cases and run them together. In JUnit, both @RunWith and @Suite annotations are used to run the suite tests.
+NEW->TEST SUITE
+@RunWith(Suite.class)
+@SuiteClasses({ JavaArraysTest.class, ParametizedStringHelperTest.class })
+public class AllTests {
+
+}
+
+JUnit Best Practices
+
+Naming Test Methods
+Highlight Important Values in Tests
+Handle Exceptions Properly
+Readable Assert Statements
+
+
+Hibernate: a framework for persisting/saving/retrieving java objects in a datebase
+1. handle all the low-level SQL
+2. minimize the amount of JDBC code
+3. provides object to relational mapping(ORM)
+
+developers defines mapping between java classes and database table
+map object fields to columns in db table via config
+//create a object
+Student studentJohn = new Student("John","Doe","jdoe@gmail.com");
+//save the objec to dab
+int identry = session.save(studentJohn);
+//retrieve object from db
+Student student = session.get(Student.class, identry);
+//return the table as a list
+//Hibernate Query language
+Query query = session.createQuery("from Student");
+List<Student> students = query.list();
+
+Hibernate vs JDBC
+hibernate uses JDBC for all dabtabase communications
+
+Raw Servlet vs. Spring MVC
+If you're building a really quick and dirty demo that you have no intention of extending later, spring can result in a lot of additional configuration issues (not really if you've done it before, but I always end up fighting with it one way or another), so that might be a time to consider just using plain old servlets. Generally though, anything beyond just a super fast and dirty demo, using some form of MVC framework is going to make life in the future a lot easier and is also in line with best practices. Spring makes things super easy, just have to spend some time on the front end configuring everything.
+
+I should note, there's nothing you can do with java servlets that you can't do with Spring. The big difference is setup time.
+
+Edit: It's worth noting that when I posted this answer, I was unaware of Spring Boot that is actually quite easy to get up an running using either an embedded web server or a more conventional web container. Here's a link to a quick start example: http://projects.spring.io/spring-boot/#quick-start
+
+
+
