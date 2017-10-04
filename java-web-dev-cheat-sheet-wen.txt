@@ -44,7 +44,7 @@ Student registration is confirmed: <br/> <br/>
 
 ${param.firstname} ${param.lastname }
 
-Nationality: 
+Nationality: //drop down
 <select name = "nationality" >
 <option>France</option>
 <option>German</option>
@@ -52,6 +52,7 @@ Nationality:
 </select>
 <%= request.getParameter("nationality") %>
 
+//check button
 Languages you are willing to choose: <br/>
 		<input type = "checkbox" name = "language" value = "C#">C#
 		<input type = "checkbox" name = "language" value = "JAVA">JAVA
@@ -1365,6 +1366,426 @@ If you're building a really quick and dirty demo that you have no intention of e
 I should note, there's nothing you can do with java servlets that you can't do with Spring. The big difference is setup time.
 
 Edit: It's worth noting that when I posted this answer, I was unaware of Spring Boot that is actually quite easy to get up an running using either an embedded web server or a more conventional web container. Here's a link to a quick start example: http://projects.spring.io/spring-boot/#quick-start
+
+Spring  bind requestParam with variables
+	//annotation request param binding
+	//pass studentname value to variable String studentName
+	@RequestMapping("/processFormVersionThree")
+	public String lesshoutDude(@RequestParam("studentname") String studentName, Model model){
+		studentName = studentName.toUpperCase();
+		String message = "Yo Yo! "+studentName;
+		model.addAttribute("message", message);		
+		return "helloworld-confirm";
+	}
+
+Controller level/parent request mapping (similar idea like a file system folder)
+1. organise request mapping within one controller
+2. sovle eventual naming conflits of mapping request
+<a href = "helloworld/showForm">Hello World Form</a>
+@Controller
+@RequestMapping("/helloworld")
+public class HelloWorldController {
+	@RequestMapping("/showForm")
+	public String showForm(){
+
+
+
+Spring MVC form 
+1. building blocks of web pages
+2. form tags are configurable and reusable
+3. support data binding
+4. automatically setting and retrieving data from a java object/bean
+5. form tags will generate html for developer
+
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+when spring mvc load form: getter methods will be called
+when spring submit form: setter methods will be called
+
+@Controller
+@RequestMapping("/student")
+public class StudentController {
+	
+	@RequestMapping("/showForm")
+	public String showForm(Model model){
+		//create new student object
+		Student theStudent = new Student();		
+		//add student as model attribute
+		model.addAttribute("student", theStudent);
+		return "student-form";
+		
+	}
+    //ModelAttribute pass data to theStudent
+	@RequestMapping("/processForm")
+	public String processForm(@ModelAttribute("student") Student theStudent){
+		
+		System.out.println("the student: "+theStudent.getFirstName()+" "+theStudent.getLastName());
+		//data automatically binded
+		return "student-confirmation";
+	}
+
+}
+    // <form:form> not standard form; path to ensure the auto bind
+	<form:form action="processForm" modelAttribute="student">
+        First Name: <form:input path="firstName" />
+		<br /><br />
+        Last Name:<form:input path="lastName" />
+		<br /><br />
+		<input type="submit" />
+	</form:form>
+
+		//here populate the drop down list from this  hashmap field
+		countryOptions = new LinkedHashMap<> ();
+		countryOptions.put("FR", "France");
+		countryOptions.put("DE", "German");
+		countryOptions.put("BR", "Brazil");
+	}
+	public LinkedHashMap<String, String> getCountryOptions() {
+		return countryOptions;
+	}
+	//Drop down button
+		<form:select path = "country">
+		 	<form:options items = "${student.countryOptions}"/>	
+		</form:select>
+
+Question: 
+
+How to use properties file to load country options
+
+Answer:
+
+This solution will show you how to place the country options in a properties file. The values will no longer be hard coded in the Java code.
+
+1. Create a properties file to hold the countries. It will be a name value pair.  Country code is name. Country name is the value.
+
+New text file:  WEB-INF/countries.properties
+
+BR=Brazil 
+FR=France 
+CO=Colombia 
+IN=India
+Note the location of the properties file is very important. It must be stored in WEB-INF/countries.properties
+
+2. Update header section for Spring config file
+
+We are going to use a new set of Spring tags for <util>. As a result, you need to update the header information in the Spring config file.
+
+File: spring-mvc-dmo-servlet.xml
+
+Remove the previous header and add this.
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+        xmlns:context="http://www.springframework.org/schema/context" 
+        xmlns:mvc="http://www.springframework.org/schema/mvc" 
+        xmlns:util="http://www.springframework.org/schema/util" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans     
+            http://www.springframework.org/schema/beans/spring-beans.xsd     
+            http://www.springframework.org/schema/context     
+            http://www.springframework.org/schema/context/spring-context.xsd     
+            http://www.springframework.org/schema/mvc         
+            http://www.springframework.org/schema/mvc/spring-mvc.xsd 
+            http://www.springframework.org/schema/util     
+            http://www.springframework.org/schema/util/spring-util.xsd">
+3. Load the country options properties file in the Spring config file. Bean id: countryOptions
+
+File: spring-mvc-dmo-servlet.xml
+
+Add the following lines:
+
+<util:properties id="countryOptions" location="classpath:../countries.properties" /> 
+
+4. Inject the properties values into your Spring Controller: StudentController.java
+
+@Value("#{countryOptions}") 
+private Map<String, String> countryOptions;
+5. Add the country options to the Spring MVC model. Attribute name: theCountryOptions
+
+@RequestMapping("/showForm") 
+public String showForm(Model theModel) { 
+ 
+    // create a student object Student 
+    Student theStudent = new Student();
+ 
+    // add student object to the model 
+    theModel.addAttribute("student", theStudent); 
+ 
+    // add the country options to the model 
+    theModel.addAttribute("theCountryOptions", countryOptions); 
+ 
+    return "student-form"; 
+}
+6. Update the JSP page, student-form.jsp, to use the new model attribute for the drop-down list: theCountryOptions
+
+<form:select path="country"> 
+ <form:options items="${theCountryOptions}" />
+</form:select>
+7. Remove all references to country option from your Student.java.  
+
+---
+
+DOWNLOAD FULL SOURCE CODE
+
+You can download entire code from here:
+
+- http://www.luv2code.com/downloads/spring-hibernate/spring-props-mvc-demo.zip
+//radio button
+		Favorite Language: 
+		Java <form:radiobutton path = "favoriteLanguage" value = "Java"/> 
+		C# <form:radiobutton path = "favoriteLanguage" value = "C#"/>
+		C++ <form:radiobutton path = "favoriteLanguage" value = "C++"/>
+		PHP <form:radiobutton path = "favoriteLanguage" value = "PHP"/>
+
+
+
+		//populate radio button with options
+		favoriteLanguageOptions= new LinkedHashMap<>();
+		favoriteLanguageOptions.put("Java", "Java");
+		favoriteLanguageOptions.put("C#", "C#");
+		favoriteLanguageOptions.put("C++", "C++");
+		favoriteLanguageOptions.put("PHP", "PHP");
+				Favorite Language: 
+		 <form:radiobuttons path="favoriteLanguage"  items = "${student.favoriteLanguageOptions}"/> 
+Operating Systems:
+	<ul>
+		<c:forEach var="tempOS" items="${student.operatingSystems}">
+			<li>tempOS</li>
+		</c:forEach>
+	</ul>
+	private String[] operatingSystems;
+
+	public String[] getOperatingSystems() {
+		return operatingSystems;
+	}
+	public void setOperatingSystems(String[] operatingSystems) {
+		this.operatingSystems = operatingSystems;
+	}
+Java standard bean validation api (JSR 303 -309)
+support both client side and server side
+Spring v4 and later support bean validation api 
+1. required
+2. validate length
+3. validate numbers
+4. validate with regular expression
+5. custom validation
+
+hibernate validator: seperate project, fully compile with java validation api
+add to web info ->lib
+1. three jars from dist/
+2. four jars from dist/lib/required
+hen performing Spring MVC validation, the location of the BindingResult parameter is very important. In the method signature, the BindingResult parameter must immediately after the model attribute. 
+
+If you place it in any other location, Spring MVC validation will not work as desired. In fact, your validation rules will be ignored.
+
+        @RequestMapping("/processForm")
+        public String processForm(
+                @Valid @ModelAttribute("customer") Customer theCustomer,
+                BindingResult theBindingResult) {
+            ...            
+        }
+Here is the relevant section from the Spring Reference Manual
+
+---
+
+22.3.3 Defining @RequestMapping handler methods
+
+
+@RequestMapping handler methods can have very flexible signatures. The supported method arguments and return values are described in the following section. Most arguments can be used in arbitrary order with the only exception being BindingResult arguments.
+
+
+The Errors or BindingResult parameters have to follow the model object that is being
+bound immediately ...
+
+Source: http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#mvc-ann-methods
+
+	//validation rules to Customer class 
+	@NotNull(message = "Last Name is required")
+	@Size(min =1, message = "is required")
+	private String lastName;
+
+	//display erro message on the HTML form
+	    Please fill up following form, * are required.
+	<form:form action="processForm" modelAttribute="customer">
+        First Name : <form:input path="firstName" />
+		<br />
+        Last Name (*): <form:input path="lastName" />
+		<form:errors path="lastName"/>
+		<br />
+		<input type="submit" value="Submit" />
+	</form:form>
+		//Spring store validate result in BindingResult
+	public String processForm(@Valid @ModelAttribute("customer") Customer customer,
+			BindingResult bindingResult){
+		if (bindingResult.hasErrors()){
+			return "customer-form";
+		}else{
+			return "customer-confirm";
+		}
+		
+	}
+
+@InitBinder annotation works as a pre processor
+it will pre process every web request to the current controller
+method annotated with @InitBinder is excuted
+
+	@InitBinder
+	public void initBinder(WebDataBinder dataBinder){
+		StringTrimmerEditor editor = new StringTrimmerEditor(true); //trim till null
+		dataBinder.registerCustomEditor(String.class, editor);//for all comming String data, apply this 
+	}
+
+@Min(value = 0, message = "must be greater than or equal to zero")
+	@Max(value = 10, message = "must be less than or equal to ten")
+	private int freePasses;
+
+        Last Name (*): <form:input path="lastName" />
+		<form:errors path="lastName" cssClass = "error"/>
+		<br /><br />
+		Free Pass:<form:input path = "freePasses"/>
+		<form:errors path = "freePasses" cssClass = "error"/>
+Regular Expressions
+1. a sequence of characters that define a search patter
+2. could be used to find or match strings
+	
+	@Pattern(regexp = "^[a-zA-Z0-9]{5}",message = "only 5 chars or digits")
+	private String postalCode;
+
+	@NotNull(message = "Free passes is required")
+	@Min(value = 0, message = "must be greater than or equal to zero")
+	@Max(value = 10, message = "must be less than or equal to ten")	
+	private Integer freePasses;
+
+Creating custom error message:
+1. create a new folder under src 
+	<!-- load custom error messages -->
+    <bean id = "messageSource"
+    class = "org.springframework.context.support.ResourceBundleMessageSource">
+    	<property name="basenames" value = "resources/messages"></property>
+    </bean>
+    //override default erro message
+    typeMismatch.customer.freePasses = Invalid Number
+
+bindingResult: org.springframework.validation.BeanPropertyBindingResult: 1 errors
+Field error in object 'customer' on field 'freePasses': rejected value [xxxdd]; codes [typeMismatch.customer.freePasses,typeMismatch.freePasses,typeMismatch.java.lang.Integer,typeMismatch]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [customer.freePasses,freePasses]; arguments []; default message [freePasses]]; default message [Failed to convert property value of type 'java.lang.String' to required type 'java.lang.Integer' for property 'freePasses'; nested exception is java.lang.NumberFormatException: For input string: "xxxdd"]
+
+Custom validation
+create custom java annotation
+eclipse new->annotation
+@Constraint(validatedBy = CourseCodeConstraintValidator.class)
+@Target({ ElementType.METHOD,ElementType.FIELD })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CourseCode {
+	//define default value
+	public String value() default "LUV";
+	//define default error message
+	public String message() default "must start with LUV";
+	//define default groups
+	public Class<?>[] groups() default {};
+	//define default payloads
+	public Class <? extends Payload> [] payload() default {};
+
+}
+public class CourseCodeConstraintValidator implements ConstraintValidator<CourseCode, String> {
+	private String coursePrefix;
+	@Override
+	public void initialize(CourseCode courseCode){
+		coursePrefix = courseCode.value();
+	}
+
+	@Override
+	public boolean isValid(String coursename, ConstraintValidatorContext constrainValidationContext) {
+		// TODO Auto-generated method stub
+		return coursename.startsWith(coursePrefix);
+	}	
+}
+	@CourseCode
+	private String courseCode;
+
+Spring MVC Custom Validation - FAQ: Is it possible to integrate multiple validation string in one annotation?
+
+
+
+Question:
+
+Is it possible to integrate multiple validation string in one annotation? For example, validate against both LUV and TOPS.
+
+Answer:
+
+Yes, you can do this. In your validation, you will make use of an array of strings.
+
+Here's an overview of the steps.
+
+1. Update CourseCode.java to use an array of strings
+
+2. Update CourseCodeConstraintValidator.java to validate against array of strings
+
+3. Update Customer.java to validate using array of strings
+
+---
+
+Detailed Steps
+
+1. Update CourseCode.java to use an array of strings
+
+Change the value entry to an array of Strings:
+
+    // define default course code
+    public String[] value() default {"LUV"};
+Note the use of square brackets for the array of Strings. Also, the initialized value uses curley-braces for array data.
+
+2. Update CourseCodeConstraintValidator.java to validate against array of strings
+
+Change the field for coursePrefixes to an array
+
+private String[] coursePrefixes; 
+
+Update the isValid(...) method to loop through the course prefixes. In the loop, check to see if the code matches any of the course prefixes.
+
+    @Override
+    public boolean isValid(String theCode, 
+                        ConstraintValidatorContext theConstraintValidatorContext) {
+        boolean result = false;
+        
+        if (theCode != null) {
+            
+            //
+            // loop thru course prefixes
+            //
+            // check to see if code matches any of the course prefixes
+            //
+            for (String tempPrefix : coursePrefixes) {
+                result = theCode.startsWith(tempPrefix);
+                
+                // if we found a match then break out of the loop
+                if (result) {
+                    break;
+                }
+            }
+        }
+        else {
+            result = true;
+        }
+        
+        return result;
+  }
+3. Update Customer.java to validate using array of strings
+
+    @CourseCode(value={"TOPS", "LUV"}, message="must start with TOPS or LUV")
+    private String courseCode;
+Note the use of curley braces.
+
+---
+
+Complete Source Code:
+
+https://gist.github.com/darbyluv2code/0275ddb6e70e085a10fd464e36a42739
+
+---
+
+That's it. This provides a solution to integrate multiple validation string in one annotation. In this example, the code validates against both LUV and TOPS.
+
+
 
 
 
