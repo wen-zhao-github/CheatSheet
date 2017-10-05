@@ -1787,5 +1787,430 @@ That's it. This provides a solution to integrate multiple validation string in o
 
 
 
+hibernate use jdbc in the background for communicationg with db, a higher level of abstraction
+Hibernate development setup
+1. IDE like Eclipse
+2. Database like mySql (download msi install file, set up password)
+3. Hibernate jar files and JDBC driver
+download hibernate-release-.zip
+lib->required(15items)->eclipse project->lib
+
+MySQL Connectors->connectors/j->independent zip file->mysql-connector-java.jar
+project->properties->java build path->libary->add jars->ok->jars will be at the folder of referenced libraries
+        //java.sql.DriverManager.getConnection using url, user and password
+    	String jdbcurl = "jdbc:mysql://localhost:3306/hb_student_tracker?useSSL=false";
+    	String user = "hbstudent";
+    	String pass = "hbstudent";
+    	System.out.println("connection to db");
+    	Connection conn = DriverManager.getConnection(jdbcurl,user,pass);
+    	System.out.println("connection granted");
+<hibernate-configuration>
+
+    <session-factory>
+
+        <!-- JDBC Database connection settings -->
+        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/hb_student_tracker?useSSL=false</property>
+        <property name="connection.username">hbstudent</property>
+        <property name="connection.password">hbstudent</property>
+
+        <!-- JDBC connection pool settings ... using built-in test pool -->
+        <property name="connection.pool_size">1</property>
+
+        <!-- Select our SQL dialect -->
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+
+        <!-- Echo the SQL to stdout -->
+        <property name="show_sql">true</property>
+
+		<!-- Set the current session context -->
+		<property name="current_session_context_class">thread</property>
+ 
+    </session-factory>
+
+</hibernate-configuration>
+
+Entity: java class that is mapped to a db table
+Object-to-Relational Mapping(ORM)
+Two options for mapping
+1. XML config(legacy)
+2. java annoation(modern) a.map class to database table (@Entity @Table(name = "student"))2. map fields to db table column(@Column(name = "x"))
+
+QUESTION:
+Why we are using JPA Annotation instead of Hibernate ?
+
+For example, why we are not using this org.hibernate.annotations.Entity?
+
+ANSWER:
+JPA is a standard specification. Hibernate is an implementation of the JPA specification.
+
+Hibernate implements all of the JPA annotations.
+
+The Hibernate team recommends the use of JPA annotations as a best practice.
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "student")
+public class Student {	
+	@Id
+	@Column(name = "id")
+	private int id;
+	@Column(name = "first_name")
+	private String firstName;
+	@Column(name = "last_name")
+	private String lastName;
+	@Column(name = "email")
+	private String email;
+	public Student(){
+		
+	}
+	public Student(String firstName, String lastName, String email) {
+		
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getFirstName() {
+		return firstName;
+	}
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+	public String getLastName() {
+		return lastName;
+	}
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	//for debugging purpose
+	@Override
+	public String toString() {
+		return "Student [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + "]";
+	}
+	
+}
+SessionFactory: 
+1. read hibernate config file
+2. create session objects
+3. heavy-weigh object 
+4. only create once in the app
+
+session:
+1. wraps a JDBC connection
+2. main object used to save/retrieve objects
+3. short-lived object
+4. retrieve from session factory
+
+public class HibernateDemo {
+
+	public static void main(String[] args) {
+		//create session factory based on config file and db table
+		SessionFactory factory = new Configuration()
+				.configure("hibernate.cfg.xml")
+				.addAnnotatedClass(Student.class)
+				.buildSessionFactory();
+		//create session
+		Session session = factory.getCurrentSession();
+		try{
+			//use the session to save java object			
+			//create Student object
+			Student student = new Student("Wen","Zhao","wen@gmail.com");
+			//start a transaction
+			session.beginTransaction();
+			//save the student object
+			session.save(student);
+			System.out.println("saving the student object...");
+			//commit the transaction
+			session.getTransaction().commit();
+			System.out.println("save sucessfully!");
+		}finally{
+			factory.close();
+		}
+
+	}
+
+}
+
+primary key: 
+uniquely identifies each row in a table
+must be a unique 
+can not be null
+
+@GeneratedValue(strategy = GenerationType.IDENTITY) //most common type for mysql
+it is possible to custom generation strategy
+1. create subclass of sequencegenerator
+2. override the method public Serializable generate() //write custom generation logic
+
+You can use ALTER TABLE to change the auto_increment initial value:
+
+ALTER TABLE tbl AUTO_INCREMENT = 5;
+TRUNCATE TABLE statement to remove all rows from a table and reset the auto_increment rules
+
+to retrieve a object from table, session.get(class,primarykeyid)
+
+			//start transaction
+			session = factory.getCurrentSession();
+			session.beginTransaction();
+			//retrieve the object
+			Student temp = session.get(Student.class, student.getId());
+			//commit
+			session.getTransaction().commit();
+
+Hibernate Query Language (HQL) is an object-oriented query language, similar to SQL, but instead of operating on tables and columns, HQL works with persistent objects and their properties. 
+//from Student which is the class not the table
+List<Student> students = session.createQuery("from Student").getResultList();
+students = session.createQuery("from Student s where s.lastName = 'Lee'").getResultList();
+students = session.createQuery("from Student s where s.email like '%gmail.com'").getResultList();
+students = session.createQuery("from Student s where s.lastName = 'Lee' or s.firstName = 'sally'").getResultList();
+
+Section: 1
+7 / 7
+Course Introduction
+Section: 2
+5 / 5
+Spring Overview
+Section: 3
+7 / 7
+Setting Up Your Development Environment
+Section: 4
+8 / 8
+Spring Inversion of Control - XML Configuration
+Section: 5
+15 / 15
+Spring Dependency Injection - XML Configuration
+Section: 6
+8 / 8
+Spring Bean Scopes and Lifecycle
+Section: 7
+7 / 7
+Spring Configuration with Java Annotations - Inversion of Control
+Section: 8
+18 / 18
+Spring Configuration with Java Annotations - Dependency Injection
+Section: 9
+6 / 6
+Spring Configuration with Java Annotations - Bean Scopes and Lifecycle Methods
+Section: 10
+10 / 10
+Spring Configuration with Java Code
+Section: 11
+8 / 8
+Spring MVC - Building Spring Web Apps
+Section: 12
+15 / 15
+Spring MVC - Creating Controllers and Views
+Section: 13
+6 / 6
+Spring MVC - Request Params and Request Mappings
+Section: 14
+15 / 15
+Spring MVC - Form Tags and Data Binding
+Section: 15
+13 / 13
+Spring MVC Form Validation - Applying Built-In Validation Rules
+Section: 16
+9 / 9
+Spring MVC Form Validation - Validating Number Ranges and Regular Expressions
+Section: 17
+8 / 8
+Spring MVC Form Validation - Creating Custom Validation Rules
+Section: 18
+2 / 2
+Introduction to Hibernate
+Section: 19
+7 / 7
+Setting Up Hibernate Development Environment
+Section: 20
+5 / 5
+Hibernate Configuration with Annotations
+Section: 21
+11 / 17
+Hibernate CRUD Features: Create, Read, Update and Delete
+Section: 22
+0 / 2
+Hibernate Advanced Mappings
+Section: 23
+0 / 17
+Hibernate Advanced Mappings - @OneToOne
+Section: 24
+0 / 10
+Hibernate Advanced Mappings - @OneToMany
+Section: 25
+0 / 8
+Hibernate Advanced Mappings - Eager vs Lazy Loading
+Section: 26
+0 / 8
+Hibernate Advanced Mappings - @OneToMany - Unidirectional
+Section: 27
+0 / 13
+Hibernate Advanced Mappings - @ManyToMany
+Section: 28
+0 / 9
+Build a Database Web App - Spring MVC and Hibernate Project - Part 1
+Section: 29
+0 / 14
+Build a Database Web App - Spring MVC and Hibernate Project - Part 2
+Section: 30
+0 / 5
+Build a Database Web App - Spring MVC and Hibernate Project - Part 3
+Section: 31
+0 / 9
+Build a Database Web App - Spring MVC and Hibernate Project - Part 4
+Section: 32
+0 / 7
+Build a Database Web App - Spring MVC and Hibernate Project - Part 5
+Section: 33
+0 / 6
+Build a Database Web App - Spring MVC and Hibernate Project - Part 6
+Section: 34
+0 / 5
+AOP: Aspect-Oriented Programming Overview
+Section: 35
+0 / 8
+AOP: @Before Advice Type
+Section: 36
+0 / 7
+AOP: Pointcut Expressions - Match Methods and Return Types
+Section: 37
+0 / 5
+AOP: Pointcut Expressions - Match Method Parameter Types
+Section: 38
+0 / 6
+AOP: Pointcut Declarations
+Section: 39
+0 / 4
+AOP: Ordering Aspects
+Section: 40
+0 / 3
+AOP: JoinPoints
+Section: 41
+0 / 9
+AOP: @AfterReturning Advice Type
+Section: 42
+0 / 4
+AOP: @AfterThrowing Advice Type
+Section: 43
+0 / 3
+AOP: @After Advice Type
+Section: 44
+0 / 11
+AOP: @Around Advice Type
+Section: 45
+0 / 7
+AOP: Add AOP Logging to Spring MVC App
+Section: 46
+0 / 3
+Summary
+Section: 47
+0 / 2
+Discount Coupons for More of My Java Training
+Section: 48
+0 / 6
+Appendix
+We're testing captions for this lecture
+Give your opinion
+FAQ: How To View Hibernate SQL Parameter Values
+Section 21, Lecture 190
+FAQ: How To View Hibernate SQL Parameter Values
+
+Question:
+
+I see hibernate printing out the query parameters as ? in the console. 
+Is it possible to printout the value that was actually queried on the 
+database. Asking as this would help in the debugging purpose.
+
+Answer:
+
+When using Hibernate, if you log the Hibernate SQL statements, you will see this:
+
+Hibernate: insert into student (email, first_name, last_name, id) values (?, ?, ?, ?)
+
+However, for debugging your application, you want to see the actual parameter values in the Hibernate logs. Basically, you want to get rid of the question marks in the Hibernate logs.
+
+You can view the actual parameters by viewing the low-level trace of the Hibernate logs. This is not set up by default. However, we can add log4j to allow us to see these low-level logs.
+
+
+
+Here is an overview of the process:
+1. Add log4j to your project classpath 
+
+2. Add log4j.properties to your “src” directory
+
+
+
+Here are the detailed steps:
+1. Add log4j to your project classpath
+
+1a. Download log4j v1.2.17 from this link: – http://central.maven.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar
+
+1b. Copy this file to your project’s lib directory
+
+
+
+
+1c. Right-click your Eclipse project and select Properties
+
+1d. Select Build Path > Libraries > Add JARS…
+
+1e. Select the log4j-1.2.17.jar file from the lib directory
+
+
+
+
+2. Add log4j.properties to your “src” directory
+
+2a. Copy the text from below
+
+# Root logger option
+log4j.rootLogger=DEBUG, stdout
+ 
+# Redirect log messages to console
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target=System.out
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+ 
+log4j.logger.org.hibernate=TRACE
+2b. Save this file as "log4j.properties" in your “src” directory
+
+
+
+
+Note: This file has an important setting:
+
+log4j.logger.org.hibernate=TRACE 
+
+This allows you see a low-level trace of Hibernate and this allows you see the real SQL parameter values.
+
+Now run your application. You will see a lot of low-level TRACE logs in the Eclipse Console window.
+
+Right-click in the Eclipse Console window and select Find/Replace…
+
+Search for: binding parameter
+
+or search for: extracted value
+
+(the search string changes depending on which version of Hibernate you are using)
+
+You will see the logs with the real parameter values. Congrats!
+
+
+
 
 
