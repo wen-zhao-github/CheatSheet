@@ -2610,7 +2610,11 @@ WEB-INFO/lib/web.xml
 servlet init vs constructor
 The init() method is typically used to perform servlet initialization--creating or loading objects that are used by the servlet in the handling of its requests. Why not use a constructor instead? Well, in JDK 1.0 (for which servlets were originally written), constructors for dynamically loaded Java classes (such as servlets) couldn't accept arguments. So, in order to provide a new servlet any information about itself and its environment, a server had to call a servlet's init() method and pass along an object that implements the ServletConfig interface. Also, Java doesn't allow interfaces to declare constructors. This means that the javax.servlet.Servlet interface cannot declare a constructor that accepts a ServletConfig parameter. It has to declare another method, like init(). It's still possible, of course, for you to define constructors for your servlets, but in the constructor you don't have access to the ServletConfig object or the ability to throw a ServletException.
 
-<c:url var="templink" value="StudentControllerServlet">
+The <c:url> tag formats a URL into a string and stores it into a variable. This tag automatically performs URL rewriting when necessary. The var attribute specifies the variable that will contain the formatted URL.
+
+The JSTL url tag is just an alternative method of writing the call to the response.encodeURL() method. The only real advantage the url tag provides is proper URL encoding, including any parameters specified by children param tag.
+
+                     <c:url var="templink" value="StudentControllerServlet">
 							<c:param name="command" value="LOAD" />
 							<c:param name="student-id" value="${temp.id}" />
 						</c:url>
@@ -2618,4 +2622,19 @@ The init() method is typically used to perform servlet initialization--creating 
 							<c:param name="command" value="DELETE" />
 							<c:param name="student-id" value="${temp.id}" />
 						</c:url>
+<form action = "PersonServlet" method = "GET">
+    <input type= "hidden" name="command" value = "UPDATE"/>
+    <input type = "hidden" name="personid"value= "${theCurrentPerson.id}"/>
+	<table>
+	<a href = "${updateLink}">UPDATE</a> | <a href="${delteLink}">DELETE</a>
+I can only imagine of sending a value from the server to the client which is (unchanged) sent back to maintain a kind of a state.
+Precisely. In fact, it's still being used for this purpose today because HTTP as we know it today is still, at least fundamentally, a stateless protocol.
 
+This use case was actually first described in HTML 3.2 (I'm surprised HTML 2.0 didn't include such a description):
+
+type=hidden
+These fields should not be rendered and provide a means for servers to store state information with a form. This will be passed back to the server when the form is submitted, using the name/value pair defined by the corresponding attributes. This is a work around for the statelessness of HTTP. Another approach is to use HTTP "Cookies".
+
+<input type=hidden name=customerid value="c2415-345-8563">
+While it's worth mentioning that HTML 3.2 became a W3C Recommendation only after JavaScript's initial release, it's safe to assume that hidden fields have pretty much always served the same purpose.
+	
