@@ -572,6 +572,8 @@ configuring spring container
 2. java annotation
 3. java source code
 
+spring xml vs annotation
+
 Spring developement process
 1. config spring bean(applicationContext.xml)
 2. create a spring container (ApplicationContext)
@@ -950,8 +952,15 @@ web.xml
 	define a class and add the annotation @Controller
 	@Controller inherit from @Component and hence support scanning
 
+Spring MVC setup in eclipse
+1. create Dynamic Web Project in eclipse
+2. copy \spring-framework-4.3.8.RELEASE-dist\spring-framework-4.3.8.RELEASE\libs all jars to WebContent/WEB-INF/lib
+3. create controller 
+4. WebContent/WEB-INF web.xml & mvc-servlet.xml 
+5. WebContent/WEB-INF create view sub folder to place all jsp
+
 create development process
-1. create controller class
+1. create controller class, normal class with@Controller annotation
 2. define controller method 
 3. add request mapping to controller method
 4. return view name
@@ -1574,7 +1583,7 @@ hibernate validator: seperate project, fully compile with java validation api
 add to web info ->lib
 1. three jars from dist/
 2. four jars from dist/lib/required
-hen performing Spring MVC validation, the location of the BindingResult parameter is very important. In the method signature, the BindingResult parameter must immediately after the model attribute. 
+then performing Spring MVC validation, the location of the BindingResult parameter is very important. In the method signature, the BindingResult parameter must immediately after the model attribute. 
 
 If you place it in any other location, Spring MVC validation will not work as desired. In fact, your validation rules will be ignored.
 
@@ -1791,10 +1800,10 @@ hibernate use jdbc in the background for communicationg with db, a higher level 
 Hibernate development setup
 1. IDE like Eclipse
 2. Database like mySql (download msi install file, set up password)
-3. Hibernate jar files and JDBC driver
+3. Hibernate jar files and JDBC driver copy to project/lib folder and add to java build path
 download hibernate-release-.zip
 lib->required(15items)->eclipse project->lib
-
+4. config file project->src
 MySQL Connectors->connectors/j->independent zip file->mysql-connector-java.jar
 project->properties->java build path->libary->add jars->ok->jars will be at the folder of referenced libraries
         //java.sql.DriverManager.getConnection using url, user and password
@@ -2637,4 +2646,119 @@ These fields should not be rendered and provide a means for servers to store sta
 
 <input type=hidden name=customerid value="c2415-345-8563">
 While it's worth mentioning that HTML 3.2 became a W3C Recommendation only after JavaScript's initial release, it's safe to assume that hidden fields have pretty much always served the same purpose.
+
+primary kesy: unique row in a table
+foreign keys: a column used to pointed to a primary key in another table
+cascade: when delete one item, the cascated item in another table will be deleted too
+
+@OneToOne(cascade=CascadeType.ALL) annotation
+Entity LifeCycle
+New/Transient
+Detach
+Merge
+Persist/managed
+Remove
+Refresh/sync
+
+rollback 
+cascadeType: delete, etc
+A database is the main container, it contains the data and log files, and all the schemas within it. You always back up a database, it is a discrete unit on its own. Schemas are like folders within a database, and are mainly used to group logical objects together, which leads to ease of setting permissions by schema.
+
+DROP SCHEMA IF EXISTS `instructor_info`;
+CREATE SCHEMA `instructor_info`;
+USE `instructor_info`;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS `instructor_detail`;
+
+CREATE TABLE `instructor_detail` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `yutube_channel` varchar(128) DEFAULT NULL,
+  `hobby` varchar(45) DEFAULT NULL,
+ 
+  PRIMARY KEY (`id`)
+);
+
+DROP TABLE IF EXISTS `instructor`;
+
+CREATE TABLE `instructor` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(45) DEFAULT NULL,
+  `last_name` varchar(45) DEFAULT NULL,
+  `email` varchar(58) DEFAULT NULL,
+  `instructor_detail_id` int(11) DEFAULT NULL,
+  
+  PRIMARY KEY (`id`),
+  KEY `FK_DETAIL_idx` (`instructor_detail_id`),
+  CONSTRAINT `FK_DETAIL` FOREIGN KEY(`instructor_detail_id`) REFERENCES `instructor_detail` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+mysql bench->databases->reverse schema
+
+	@OneToOne (cascade = CascadeType.ALL)
+	@JoinColumn (name = "instructor_detail_id")
+	private InstructorDetail instructorDetail;
+The mappedBy attribute is referencing customer while the property is mCustomer, hence the error message. So either change your mapping into:
+
+/** The collection of stores. */
+@OneToMany(mappedBy = "mCustomer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+private Collection<Store> stores;
+//need to add both entity class to the session factory config
+SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Instructor.class).addAnnotatedClass(InstructorDetail.class).buildSessionFactory();
+	    Session session = factory.getCurrentSession();
+Instructor instructor = new Instructor("Wen","Li","wen@gmail.com");
+	    InstructorDetail insDetail = new InstructorDetail("http://youtube.com/xx","jogging");
+	    instructor.setInstructorDetail(insDetail);
+	    
+	    try{
+	    	System.out.println(instructor);
+	    	System.out.println(insDetail);
+	    	System.out.println("begin transaction:");
+	    	session.beginTransaction();
+		    session.save(instructor);
+		    
+		    session.getTransaction().commit();
+
+Hibernate cannot simultaneously fetch multiple bags
+
+the problem is that the JPA annotations are parsed not to allow more than 2 eagerly loaded collection. But the hibernate-specific annnotations allow it. 
+USE `instructor_info`;
+DROP TABLE IF EXISTS `student`;
+CREATE TABLE `student` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(48) DEFAULT NULL,
+  `last_name` varchar(48) DEFAULT NULL,
+   
+  PRIMARY KEY (`id`)
+  
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+USE `instructor_info`;
+DROP TABLE IF EXISTS `instructor_student`;
+
+CREATE TABLE `instructor_student` (
+  `instructor_id` int(11) NOT NULL,  
+  `student_id` int(11) NOT NULL,  
+  PRIMARY KEY (`instructor_id`,`student_id`),
+  CONSTRAINT `FK_INSTRUCTOR_STUDENT` FOREIGN KEY(`instructor_id`) REFERENCES `instructor` (`id`),
+  CONSTRAINT `FK_STUDENT_INSTRUCTOR` FOREIGN KEY(`student_id`) REFERENCES `student` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+	@ManyToMany(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})
+	@JoinTable( name = "instructor_student",
+			joinColumns = @JoinColumn(name = "instructor_id"),
+	        inverseJoinColumns = @JoinColumn(name = "student_id")
+			)
+	private List<Student> students;
+
+	@ManyToMany(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})
+	@JoinTable( name = "instructor_student",
+			joinColumns = @JoinColumn(name = "student_id"),
+	        inverseJoinColumns = @JoinColumn(name = "instructor_id")
+			)
+	private List<Instructor> instructors;
+
 	
