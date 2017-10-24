@@ -2710,6 +2710,7 @@ private Collection<Store> stores;
 SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Instructor.class).addAnnotatedClass(InstructorDetail.class).buildSessionFactory();
 	    Session session = factory.getCurrentSession();
 Instructor instructor = new Instructor("Wen","Li","wen@gmail.com");
+
 	    InstructorDetail insDetail = new InstructorDetail("http://youtube.com/xx","jogging");
 	    instructor.setInstructorDetail(insDetail);
 	    
@@ -2761,4 +2762,42 @@ CREATE TABLE `instructor_student` (
 			)
 	private List<Instructor> instructors;
 
-	
+
+@Autowired
+@Qualifier("alpha")
+VS
+@Resource(name="alpha")
+
+@Autowired can be used alone . If it is used alone , it will be wired by type . So problems arises if more than one bean of the same type are declared in the container as @Autowired does not know which beans to use to inject. As a result , use @Qualifier together with @Autowired to clarify which beans to be actually wired by specifying the bean name (wired by name)
+
+@Resource is wired by name too . So if @Autowired is used together with @Qualifier , it is the same as the @Resource.
+
+The difference are that @Autowired and @Qualifier are the spring annotation while @Resource is the standard java annotation (from JSR-250) . Besides , @Resource only supports for fields and setter injection while  @Autowired supports fields , setter ,constructors and multi-argument methods injection.
+
+It is suggested to use @Resource for fields and setter injection. Stick with @Qualifier and @Autowired for constructor or a multi-argument method injection.
+
+Spring @Component, @Repository, @Service and @Controller Annotations
+January 23, 2015 by Lokesh Gupta
+
+
+ 
+In spring autowiring concepts, we learned about @Autowired annotation that it handles only wiring. You still have to define the beans themselves so the container is aware of them and can inject them for you. But with @Component, @Repository, @Service and @Controller annotations in place and after enabling automatic component scanning, spring will automatically import the beans into the container so you don’t have to define them explicitly with XML. These annotations are called Stereotype annotations as well.
+
+Before jumping to example use of these annotations, let’s learn quick facts about these annotations which will help you in making a better decision about when to use which annotation.
+
+@Component, @Repository, @Service and @Controller annotations
+
+1) The @Component annotation marks a java class as a bean so the component-scanning mechanism of spring can pick it up and pull it into the application context. To use this annotation, apply it over class as below:
+
+@Component
+public class EmployeeDAOImpl implements EmployeeDAO {
+    ...
+}
+2) Although above use of @Component is good enough but you can use more suitable annotation that provides additional benefits specifically for DAOs i.e. @Repository annotation. The @Repository annotation is a specialization of the @Component annotation with similar use and functionality. In addition to importing the DAOs into the DI container, it also makes the unchecked exceptions (thrown from DAO methods) eligible for translation into Spring DataAccessException.
+
+3) The @Service annotation is also a specialization of the component annotation. It doesn’t currently provide any additional behavior over the @Component annotation, but it’s a good idea to use @Service over @Component in service-layer classes because it specifies intent better. Additionally, tool support and additional behavior might rely on it in the future.
+
+4) @Controller annotation marks a class as a Spring Web MVC controller. It too is a @Component specialization, so beans marked with it are automatically imported into the DI container. When you add the @Controller annotation to a class, you can use another annotation i.e. @RequestMapping; to map URLs to instance methods of a class.
+
+In real life, you will face very rare situations where you will need to use @Component annotation. Most of the time, you will using @Repository, @Service and @Controller annotations. @Component should be used when your class does not fall into either of three categories i.e. controller, manager and dao.
+If you want to define name of the bean with which they will be registered in DI container, you can pass the name in annotation itself e.g. @Service (“employeeManager”).
