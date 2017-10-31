@@ -486,6 +486,7 @@ JSP Version: <%= JspFactory.getDefaultFactory().getEngineInfo().getSpecification
 		//INSERT INTO TABLE_NAME (column1, column2, column3,...columnN)  
 		//VALUES (value1, value2, value3,...valueN);
 		String query = "INSERT INTO web_student_tracker.student (first_name,last_name,email) VALUES(?,?,?)";
+		//INSERT into customer_info.customer (first_name,last_name,email) VALUES ("wen","lee","wen@gmail.com");
 		
 		try{
 			conn = dataSource.getConnection();
@@ -2801,3 +2802,41 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
 In real life, you will face very rare situations where you will need to use @Component annotation. Most of the time, you will using @Repository, @Service and @Controller annotations. @Component should be used when your class does not fall into either of three categories i.e. controller, manager and dao.
 If you want to define name of the bean with which they will be registered in DI container, you can pass the name in annotation itself e.g. @Service (“employeeManager”).
+
+
+A JSP is a convenient way to write a servlet that allows you to mix html with scripting elements (although it's recommended to avoid Java code in your jsp in favour of tags and el expressions). Under the covers it will be compiled as a servlet but it avoids you having to use lots of messy print statements.
+
+It's important to have at least a basic understanding of servlets and JSP's. Spring MVC is one of many frameworks built on top of servlets to try make the task of writing a web application a bit easier. Basically all requests are mapped to the DispatcherServlet which acts as a front controller.
+
+The DispatcherServlet will then call the controller whose annotations match the incoming request. This is neater than having to write these mappings yourself in the web.xml (although with servlet 3.0 you can annotate servlets now). But you also get many other benefits that can be used like mapping form fields to an object, validating that object with jsr303 annotations, map inputs and outputs to xml or json etc etc. Plus it's tightly integrated with core spring so you can easily wire in your services for the controller to call.
+
+ The difference between servlets and JSP is that servlets typically embed HTML inside Java code, while JSPs embed Java code in HTML. 
+ 
+ SpringMVCHibernate working together
+ WEB-INF/web.xml  and spring-mvc-crud-demo-servlet.xml
+ @Repository  specially for DAO
+ @Transactional for begin and commit transactions
+
+ Actually c3p0 is a jar file which we uses in hibernate, when we run our hibernate application, we can see in console that there is line "Connection Pool Size 20", that is the number of connection objects available, if we uses only 5 connection then 15 connection objects will be waste, and in industry "Connection Objects" are very costly resources, that's why to define the number of connection objects that may be needed in our application we use c3p0 jar file.
+
+ C3P0 is simply an implementation of the DataSource API, which conceptually sits just above the raw JDBC DriverManager. The main function of a DataSource is acquiring a standard JDBC Connection from it and releasing it in the end.
+
+ session.createQuery("FROM Customer", Customer.class)
+ HQL need to From bean name not DB table name, hence, From Customer, not From customer
+
+  @RequestMapping handle all http methods: get and post
+  @GetMapping only handle get method equals to (@RequestMapping(path="/processForm", method = RequestMethod.GET))
+  @PostMapping short cut for @RequestMapping(path="/processForm", method = RequestMethod.POST)
+  GET good for debugging, limit for data length
+  POST: no limitation on data length, can also send attachments, for example.
+ @Service applied to Service implementations
+ Spring will automatically register the Service implements thanks to component-scanning
+  service facade design pattern
+  Intermediate layer for customer business logic 
+  integrate data from multiple source
+  Customer service delegate calls to DAO
+  service layer and DAO layer
+
+  Service layer: @Service
+  DAO layer: @Repository
+  move transaction manegement from DAO side to Serivice Side
