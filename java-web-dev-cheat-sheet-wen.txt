@@ -2637,6 +2637,10 @@ The JSTL url tag is just an alternative method of writing the call to the respon
     <input type = "hidden" name="personid"value= "${theCurrentPerson.id}"/>
 	<table>
 	<a href = "${updateLink}">UPDATE</a> | <a href="${delteLink}">DELETE</a>
+//request param spring binding
+@RequestMapping("/updateForm")
+	public String updateForm(@RequestParam("customerId") int customerid, Model model){
+
 I can only imagine of sending a value from the server to the client which is (unchanged) sent back to maintain a kind of a state.
 Precisely. In fact, it's still being used for this purpose today because HTTP as we know it today is still, at least fundamentally, a stateless protocol.
 
@@ -2840,3 +2844,24 @@ The DispatcherServlet will then call the controller whose annotations match the 
   Service layer: @Service
   DAO layer: @Repository
   move transaction manegement from DAO side to Serivice Side
+  
+the <form:form> tag plays an important role here; it’s very similar to the regular HTLM <form> tag but the modelAttribute attribute is the key which specifies a name of the model object that backs this form:
+
+For @RequestMapping methods, it has to been string return type.
+
+<form:form action="/customer/saveUpdates" modelAttribute="currentCustomer">
+	<form:hidden path = "id"/>
+
+<form:form action="${pageContext.request.contextPath}/account/login" method="post">
+confirmation dialog before delete:
+Inline event handler
+In the most simple way, you can use the confirm() function in an inline onclick handler.
+<a href="delete.php?id=22" onclick="return confirm('Are you sure?')">Link</a>
+<a href="${deleteLink}" onclick="return confirm('Are you sure you want to Remove?');">Delete</a>
+
+		Session session = sessionFactory.getCurrentSession();
+		//session.save(customer);		
+		session.saveOrUpdate(customer);
+
+		
+
