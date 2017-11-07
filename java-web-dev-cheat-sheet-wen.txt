@@ -2862,6 +2862,123 @@ In the most simple way, you can use the confirm() function in an inline onclick 
 		Session session = sessionFactory.getCurrentSession();
 		//session.save(customer);		
 		session.saveOrUpdate(customer);
+HQL 
+Query<Course> query = session.createQuery("select c from Course c where c.instructor.id=:theInstructorId", Course.class);
+query.setParameter("theInstructorId", theId);
+List<Course> tempCourses = query.getResultList();
 
-		
+The JoinColumn is actually fairly complex and it goes through a number of advanced steps to find the desired column.
+
+This info below is from the documentation
+
+Source: http://docs.oracle.com/javaee/7/api/javax/persistence/JoinColumn.html#name--
+
+---
+
+The table in which it is found depends upon the context.
+
+- If the join is for a OneToOne or ManyToOne mapping using a foreign key mapping strategy, the foreign key column is in the table of the source entity or embeddable.
+
+- If the join is for a unidirectional OneToMany mapping using a foreign key mapping strategy, the foreign key is in the table of the target entity.
+
+- If the join is for a ManyToMany mapping or for a OneToOne or bidirectional ManyToOne/OneToMany mapping using a join table, the foreign key is in a join table.
+
+- If the join is for an element collection, the foreign key is in a collection table.
+
+--
+
+So as you can see, it depends on the context.
+
+In our training video, we are using @OneToMany uni-directional (course has one-to-many reviews).
+
+As a result, the join column / foreign key column is in the target entity. In this case, the target entity is the Review class. So, you will find the join column "course_id" in the "review" table.
+
+AOP proxy: an object created by the AOP framework in order to implement the aspect contracts (advise method executions and so on). In the Spring Framework, an AOP proxy will be a JDK dynamic proxy or a CGLIB proxy. Weaving: linking aspects with other application types or objects to create an advised object.
+
+Best practice for Aspect and Advices
+1. keep the code small 
+2. keep the code fast
+3. Dont perfom any expensive/slow operations
+4. Get in and out as quick as possible
+
+AOP advantage:
+1. usable modules
+2. no more code tangling nor code scattering
+
+AOP disadvantage:
+too many aspects will be hard to follow, use AOP with moderation
+AspectJ Weaver » 1.8.10
+Spring use some of AspectJ annotatioins and classes
+development process for AOP
+1. create target object: 
+2. create spring java config
+3. create main app
+4. creat an aspect with@befor annotation
+
+	public static void main(String[] args) {
+		//read spring config class
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(DemoConfig.class);
+		//get the bean from spring container
+		AccountDAO accountDao = context.getBean(AccountDAO.class);
+		//call the business method
+		accountDao.addAccount();
+		//close the context
+		context.close();
+
+	}
+
+Aspect pointcut expression language
+A predicate expression for where the advice should be applied
+Spring AOP use AspectJ's pointcut expression
+
+execution(modifiers-pattern?return-type-pattern declaring-type-pattern?method-name-pattern(param-pattern) throw-pattern?)
+pattern with ? is optional
+modifiers-pattern: public/private
+declaring-type-pattern: class name
+modifier and declaring type are optional
+before advcice
+wildcard: * (match on everything)
+@Before("execution(public void com.example.wen.addAccount())")
+execution(public void add*())
+execution(* processCard*())
+@Before("execution(public void com.example.wen.springaop.dao.AccountDAO.addAccount())")
+
+match on parameters
+matches a method with no arguments ()
+mataches a method with one argument of any type (*)
+mataches a method with 0 or more arguments of any type (..)
+execution(public void addAccount(com.example.wen.Account)) //parameter match,fully qualified class name is required
+exection(* com.example.wen.springaop.*.*(..))//match on methods in a package
+
+@JsonAutoDetect
+
+The Jackson annotation @JsonAutoDetect is used to tell Jackson to include properties which are not public, both when reading and writing objects. Here is an example class showing you how you can use the @JsonAutoDetect annotation:
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY )
+public class PersonAutoDetect {
+
+    private long  personId = 123;
+    public String name     = null;
+
+}
+The JsonAutoDetect.Visibility class contains constants matching the visibility levels in Java, meaning ANY, DEFAULT, NON_PRIVATE, NONE, PROTECTED_AND_PRIVATE and PUBLIC_ONLY.
+
+Jackson Annotations
+Some of the more well-known open source Java JSON APIs are:
+Jackson
+GSON
+Boon
+JSON.org
+
+
+
+
+
+
+
+
+
+
 
