@@ -2971,8 +2971,11 @@ Jackson
 GSON
 Boon
 JSON.org
-
-
+data transfer object (DTO) is an object that carries data between processes.
+Base64 is a group of similar binary-to-text encoding schemes that represent binary data in an ASCII string format by translating it into a radix-64 representation.
+forex api
+automator
+zql: compatible with most language in forex
 
 
 
