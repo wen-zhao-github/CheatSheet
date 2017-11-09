@@ -2977,6 +2977,11 @@ forex api
 automator
 zql: compatible with most language in forex
 
+ZuluScripts are implemented using ZuluTrade Query Language (zql) which has been developed to be compatible with the most commonly used scripting languages of the Forex market.
+Output size depends on the function; it is 128 bits for MD5, 160 bits for SHA-1, 256 bits for SHA-256..
+
+The MetaQuotes Language 4 (MQL4) is an object-oriented high-level programming language intended for writing automated trading strategies, custom technical indicators for the analysis of various financial markets. It allows not only to write a variety of expert systems, designed to operate in real time, but also create their own graphical tools to help you make trade decisions.
+
 
 
 
