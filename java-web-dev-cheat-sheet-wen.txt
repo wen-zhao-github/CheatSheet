@@ -2982,7 +2982,14 @@ Output size depends on the function; it is 128 bits for MD5, 160 bits for SHA-1,
 
 The MetaQuotes Language 4 (MQL4) is an object-oriented high-level programming language intended for writing automated trading strategies, custom technical indicators for the analysis of various financial markets. It allows not only to write a variety of expert systems, designed to operate in real time, but also create their own graphical tools to help you make trade decisions.
 
+NormalizeDouble
+Rounding floating point number to a specified accuracy.
+double  NormalizeDouble(
+   double  value,      // normalized number
+   int     digits      // number of digits after decimal point
+   );
 
+   
 
 
 
